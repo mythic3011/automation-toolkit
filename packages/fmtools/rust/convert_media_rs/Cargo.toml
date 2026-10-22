@@ -1,0 +1,20 @@
+[package]
+name = "convert_media"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "convert_media"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+walkdir = { workspace = true }
+rayon = { workspace = true }
+indicatif = { workspace = true }
+anyhow = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+fmtools-fs.workspace = true

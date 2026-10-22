@@ -1,0 +1,22 @@
+[package]
+name = "dupeforge-rs"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "dupeforge-rs"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+walkdir = { workspace = true }
+sha2 = { workspace = true }
+md5 = { workspace = true }
+rayon = { workspace = true }
+indicatif = { workspace = true }
+anyhow = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+fmtools-fs.workspace = true

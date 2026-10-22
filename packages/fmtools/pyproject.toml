@@ -1,0 +1,90 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fmtools"
+version = "2.1.0"
+description = "Comprehensive file management and media processing toolkit"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "samwell9624"}
+]
+keywords = ["file management", "duplicate files", "file organization", "media conversion", "backup"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Filesystems",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+    "tqdm>=4.65.0",
+    "moviepy>=1.0.3,<2",
+    "imageio>=2.31.1",
+    "imageio-ffmpeg>=0.4.8",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "build>=1.2.0",
+    "setuptools>=61.0",
+    "wheel",
+]
+full = [
+    "Pillow>=10.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/mythic3011/automation-toolkit"
+Documentation = "https://github.com/mythic3011/automation-toolkit/tree/main/packages/fmtools"
+Repository = "https://github.com/mythic3011/automation-toolkit"
+"Bug Tracker" = "https://github.com/mythic3011/automation-toolkit/issues"
+
+[project.scripts]
+fmtools = "fmtools.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["fmtools", "fmtools._legacy"]
+include-package-data = false
+
+[tool.setuptools.package-data]
+fmtools = ["bin/*", "bin/**/*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.4.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "build>=1.2.0",
+    "setuptools>=61.0",
+    "wheel",
+]
+

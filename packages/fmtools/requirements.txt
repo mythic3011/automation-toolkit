@@ -1,0 +1,23 @@
+# Python Requirements for fmtools - File Management Tools
+# Install with: pip install -r requirements.txt
+
+# Progress bars and visual feedback
+tqdm>=4.65.0
+
+# Media processing and conversion
+moviepy>=1.0.3,<2
+imageio>=2.31.1
+imageio-ffmpeg>=0.4.8
+
+# Configuration management
+PyYAML>=6.0
+
+# Optional: For better performance
+# Pillow>=10.0.0  # Image processing and compression
+# numpy>=1.24.0   # Numerical operations (moviepy dependency)
+
+# Development tools (optional)
+# pytest>=7.4.0
+# black>=23.0.0
+# flake8>=6.0.0
+

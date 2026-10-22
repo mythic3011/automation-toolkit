@@ -1,0 +1,22 @@
+[package]
+name = "organize_files"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "organize_files"
+path = "src/main.rs"
+
+[dependencies]
+fmtools-fs.workspace = true
+clap = { workspace = true }
+walkdir = { workspace = true }
+anyhow = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+indicatif = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }

@@ -1,0 +1,6 @@
+* text=auto
+
+# Keep executable shell source and JavaScript lint input consistent on Windows.
+*.sh text eol=lf
+*.js text eol=lf
+*.bat text eol=crlf

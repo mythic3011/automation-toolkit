@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fmtools-tests:
+    name: fmtools tests (Python ${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.8"
+          - os: ubuntu-latest
+            python-version: "3.11"
+          - os: windows-latest
+            python-version: "3.11"
+    defaults:
+      run:
+        working-directory: packages/fmtools
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install fmtools and test dependencies
+        run: python -m pip install -e ".[dev]" build
+      - name: Run fmtools tests
+        run: python -m pytest
+
+  fmtools-wheel:
+    name: Build and install fmtools wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build frontend
+        run: python -m pip install --upgrade build
+      - name: Build wheel
+        working-directory: packages/fmtools
+        run: python -m build --wheel
+      - name: Install wheel and check CLI
+        run: |
+          python -m pip install packages/fmtools/dist/*.whl
+          fmtools --help
+          python -m pip install pytest
+          python -m pytest packages/fmtools/tests/test_packaged_cli.py
+
+  fmtools-rust:
+    name: fmtools Rust workspace (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: packages/fmtools/rust
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Install FFmpeg fixture binary
+        run: |
+          python -m pip install imageio-ffmpeg
+          python -c "import imageio_ffmpeg; print('FMTOOLS_FFMPEG=' + imageio_ffmpeg.get_ffmpeg_exe())" >> "$GITHUB_ENV"
+        shell: bash
+      - name: Check Rust formatting
+        if: matrix.os == 'ubuntu-latest'
+        run: cargo fmt --all -- --check
+      - name: Test locked Rust workspace
+        run: cargo test --workspace --locked
+      - name: Check Rust lints
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+  media-catcher:
+    name: Media Catcher tests and builds
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/media-catcher
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: packages/media-catcher/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run build smoke tests
+        run: npm test
+      - name: Lint source and build scripts
+        run: npm run lint:all
+      - name: Build production userscript
+        run: npm run build
+      - name: Build development userscript
+        run: npm run build:dev
+
+  shell-script-syntax:
+    name: Tracked shell script syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tracked shell scripts without executing them
+        run: |
+          while IFS= read -r -d '' script; do
+            bash -n "$script"
+          done < <(git ls-files -z -- '*.sh')

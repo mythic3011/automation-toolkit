@@ -1,0 +1,19 @@
+[package]
+name = "rename_files"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "rename_files"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+walkdir = { workspace = true }
+anyhow = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+indicatif = { workspace = true }
+fmtools-fs.workspace = true

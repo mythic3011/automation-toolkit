@@ -1,0 +1,10 @@
+# Ignore built/generated files
+dist/
+node_modules/
+
+# Ignore package lock files
+package-lock.json
+
+# Ignore compiled output
+*.min.js
+

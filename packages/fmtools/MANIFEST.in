@@ -1,0 +1,34 @@
+# Include documentation
+include README.md
+include LICENSE
+recursive-include docs *.md
+
+# Include configuration examples
+recursive-include examples *.json
+
+# Include executable binaries (Rust builds)
+recursive-include src/fmtools/bin *
+
+# Include the Rust workspace needed to rebuild optional executables from an sdist
+include build_all.sh
+include rust/Cargo.lock
+recursive-include rust *.rs *.toml
+
+# Exclude build artifacts
+prune dist
+prune build
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude *.log
+global-exclude .DS_Store
+
+# Exclude development files
+exclude .gitignore
+exclude *.spec
+exclude .python-version
+exclude .uvignore
+recursive-exclude build *
+recursive-exclude build-config *
+prune rust/target
+recursive-exclude *.egg-info *
+recursive-exclude scripts test*.py
