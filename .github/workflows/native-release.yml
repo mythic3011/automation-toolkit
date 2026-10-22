@@ -1,0 +1,136 @@
+name: Native toolkit release
+
+on:
+  push:
+    tags:
+      - "toolkit-v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Toolkit version, for example 1.0.0"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Build locked Rust workspace
+        working-directory: packages/fmtools/rust
+        shell: bash
+        env:
+          RUSTFLAGS: ${{ matrix.os == 'windows-latest' && '-C target-feature=+crt-static' || '' }}
+          BUILD_TARGET: ${{ matrix.target }}
+        run: cargo build --locked --release --workspace --target "$BUILD_TARGET"
+      - name: Package native archive
+        shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+          RELEASE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '' }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            version="$RELEASE_VERSION"
+          else
+            version="${RELEASE_TAG#toolkit-v}"
+          fi
+          python tools/native_release.py version "toolkit-v${version}"
+          python tools/native_release.py bundle --version "$version" --target "$BUILD_TARGET" --binary-dir "packages/fmtools/rust/target/$BUILD_TARGET/release" --output dist/native
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.target }}
+          path: dist/native/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub release and package manifests
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: native-*
+          path: dist/native
+          merge-multiple: true
+      - name: Resolve and verify release version
+        id: version
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '' }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            version="$RELEASE_VERSION"
+          else
+            version="${RELEASE_TAG#toolkit-v}"
+          fi
+          canonical="$(python tools/native_release.py version "toolkit-v${version}")"
+          printf 'version=%s\n' "$canonical" >> "$GITHUB_OUTPUT"
+      - name: Create source archive and package manifests
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python tools/native_release.py source --version "$RELEASE_VERSION" --output dist/native
+          python tools/native_release.py manifests --version "$RELEASE_VERSION" --assets dist/native --output-root "$RUNNER_TEMP/manifests"
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          gh release create "toolkit-v${RELEASE_VERSION}" dist/native/* --target "$RELEASE_SHA" --title "Automation Toolkit v${RELEASE_VERSION}" --generate-notes
+      - name: Update package manifests on default branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          git fetch origin "$DEFAULT_BRANCH"
+          git checkout --detach "origin/$DEFAULT_BRANCH"
+          mkdir -p Formula bucket
+          cp "$RUNNER_TEMP/manifests/Formula/automation-toolkit.rb" Formula/automation-toolkit.rb
+          cp "$RUNNER_TEMP/manifests/bucket/automation-toolkit.json" bucket/automation-toolkit.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- Formula/automation-toolkit.rb bucket/automation-toolkit.json
+          if git diff --cached --quiet; then
+            echo "Package manifests already match this release."
+            exit 0
+          fi
+          git commit -m "Update package manifests for toolkit-v${RELEASE_VERSION}"
+          git push origin "HEAD:$DEFAULT_BRANCH"

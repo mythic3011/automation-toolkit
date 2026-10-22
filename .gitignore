@@ -35,11 +35,6 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 
-# Media Catcher build tooling and dependency lock are source files.
-!packages/media-catcher/build/
-!packages/media-catcher/build/**
-!packages/media-catcher/package-lock.json
-
 # Executables (build outputs should not be in git)
 /packages/fmtools/src/fmtools/bin/
 *.exe

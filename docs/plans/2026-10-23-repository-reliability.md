@@ -1,5 +1,7 @@
 # Repository Reliability Implementation Plan
 
+> Historical plan: this work preceded the removal of Media Catcher. Its package and JavaScript build instructions below are retained only as a record; use the root README for the current packages.
+
 > **For Claude:** Use the superpowers debugging, test-driven-development, parallel-agent, and verification workflows while implementing these tasks.
 
 **Goal:** Make fresh checkouts and installed packages usable, and add repeatable validation for the monorepo.

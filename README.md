@@ -1,6 +1,6 @@
 # Automation Toolkit
 
-Automation tools for file management, browser media capture, and standalone utilities. The three packages are independent: install only the tools you need. Linux Secure Server Setup is maintained in a separate repository.
+Automation tools for file management and standalone utilities. The two packages are independent: install only the tools you need. Linux Secure Server Setup is maintained in a separate repository.
 
 ```sh
 git clone https://github.com/mythic3011/automation-toolkit.git
@@ -10,11 +10,27 @@ cd automation-toolkit
 | Package | Purpose | Requirements |
 | --- | --- | --- |
 | [fmtools](packages/fmtools/) | Python CLI for deduplication, organization, renaming, checksums, and backups; optional Rust tools | Python 3.8+ |
-| [Media Catcher](packages/media-catcher/) | Tampermonkey userscript for Panopto JSON and Zoom VTT transcripts | Node.js 18+ to build; a browser with Tampermonkey to use |
 | [Standalone scripts](packages/scripts/) | Individual Python utilities | Python 3.8+ and each script's dependencies |
 
 ## File management
 
+Install the four native Rust tools with Homebrew on macOS/Linux:
+
+```sh
+brew tap mythic3011/automation-toolkit https://github.com/mythic3011/automation-toolkit.git
+brew install mythic3011/automation-toolkit/automation-toolkit
+```
+
+Or with Scoop on Windows x64:
+
+```powershell
+scoop bucket add automation-toolkit https://github.com/mythic3011/automation-toolkit.git
+scoop install automation-toolkit/automation-toolkit
+```
+
+These installs provide `dupeforge-rs`, `rename_files`, `organize_files`, and `convert_media`. Preview organization with `organize_files --source ./downloads --dest ./sorted --dry-run`. See the [package manager guide](docs/PACKAGE_MANAGERS.md) for examples, FFmpeg, upgrades, and release maintenance.
+
+The Python CLI provides additional commands and is installed separately.
 From the repository root, install fmtools in a Python virtual environment:
 
 ```sh
@@ -38,18 +54,6 @@ fmtools clean --directory ./workspace --dry-run
 ```
 
 Other commands include `stats`, `convert`, `speed`, `hash`, `backup`, `find`, `compress`, and `config`. Run `fmtools COMMAND --help` for the accepted options. See the [fmtools README](packages/fmtools/README.md) for installation, media dependencies, and optional Rust tools.
-
-## Media Catcher
-
-```sh
-cd packages/media-catcher
-npm ci
-npm run build
-```
-
-Install the generated `dist/media-catcher.user.js` or `dist/media-catcher.min.user.js` through Tampermonkey. Build output is generated locally and is not checked into Git.
-
-For development, `npm run build:dev` generates `dist/media-catcher.dev.user.js`, and `npm run watch` rebuilds when source files change. See the [package README](packages/media-catcher/README.md) and [build guide](packages/media-catcher/docs/BUILD_SYSTEM.md).
 
 ## Standalone utilities
 
@@ -75,14 +79,10 @@ python -m build
 
 The root pytest configuration collects the fmtools suite and leaves the legacy helper scripts out of test discovery.
 
-Run Media Catcher checks from its package directory:
+Check native release packaging from the root with Python 3.11 or newer:
 
 ```sh
-npm ci
-npm test
-npm run lint:all
-npm run build
-npm run build:dev
+python -m unittest discover -s tools/tests -v
 ```
 
 Check shell syntax from the repository root using Bash:
@@ -93,18 +93,20 @@ while IFS= read -r -d '' script; do
 done < <(git ls-files -z -- '*.sh')
 ```
 
-The root [CI workflow](.github/workflows/ci.yml) runs Python tests, a wheel installation check, Media Catcher tests/builds/lint, and shell syntax checks for tracked shell scripts.
+The root [CI workflow](.github/workflows/ci.yml) runs Python tests, a wheel installation check, Rust tests and Clippy, native packaging tests, and shell syntax checks. The [native release workflow](.github/workflows/native-release.yml) builds platform archives and updates the Homebrew and Scoop installers.
 
 ## Repository layout
 
 ```text
 packages/
   fmtools/             Python package, Rust workspace, tests, and CLI docs
-  media-catcher/       Userscript source, build tooling, and tests
-  scripts/python/     Standalone Python utilities
+  scripts/python/      Standalone Python utilities
 docs/                  Existing guides and historical project notes
+Formula/               Homebrew formula for the native Rust tools
+bucket/                Scoop manifest for Windows x64
+tools/native_release.py  Reproducible release archives and installer generation
 tools/archive/         Historical repository restructuring helpers
-.github/workflows/     CI and PyPI release workflows
+.github/workflows/     CI, native toolkit, and PyPI release workflows
 ```
 
 Package READMEs and command help describe the current entry points. Older guides under `docs/` may reference paths from before the monorepo restructure.

@@ -9,6 +9,7 @@ package-specific guidance.
 - [Getting Started](GETTING_STARTED.md) — quick start for the entire project
 - [Troubleshooting](TROUBLESHOOTING.md) — common issues and solutions
 - [Changelog](CHANGELOG.md) — version history
+- [Homebrew and Scoop](../PACKAGE_MANAGERS.md) — install native tools and maintain releases
 
 Older one-off status/summary notes (restructure plans, completion reports,
 etc.) live alongside this index but are kept for historical reference only.
@@ -28,13 +29,6 @@ Python CLI with optional Rust-accelerated implementations.
 - [Usage Examples](../../packages/fmtools/docs/USAGE_EXAMPLES.md)
 - [Rust Guide](../../packages/fmtools/docs/USE_RUST_GUIDE.md)
 
-### media-catcher — Media Capture UserScript
-
-Browser UserScript for capturing Panopto videos and Zoom transcripts.
-
-- [README](../../packages/media-catcher/README.md)
-- [docs/](../../packages/media-catcher/docs/)
-
 ### scripts — Utility Scripts
 
 Standalone automation scripts.
@@ -48,11 +42,12 @@ Standalone automation scripts.
 automation-toolkit/
 ├── packages/          # All sub-projects
 │   ├── fmtools/
-│   ├── media-catcher/
 │   └── scripts/
 ├── docs/
 │   └── master/        # This directory (project-wide docs)
-├── tools/             # One-off restructure helper scripts (legacy)
+├── Formula/           # Homebrew formula
+├── bucket/            # Scoop manifest
+├── tools/             # Release packaging and archived restructure helpers
 ├── README.md
 ├── LICENSE
 └── .gitignore

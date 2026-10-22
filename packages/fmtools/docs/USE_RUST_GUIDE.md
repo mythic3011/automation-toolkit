@@ -1,5 +1,7 @@
 # Optional Rust executables
 
+The four native commands can also be installed directly through [Homebrew or Scoop](../../../docs/PACKAGE_MANAGERS.md). Use those commands by name; the Python adapter described below selects binaries bundled with the Python package.
+
 fmtools includes Python implementations for its supported commands. Rust executables are optional and are used by `dedup`, `rename`, and `organize` when a matching executable is available and the configured file-count threshold is exceeded. Use `--force-python` to select Python or `--force-rust` to request Rust for a command that supports it.
 
 Build from the repository checkout with Rust installed. Run these commands from `packages/fmtools`:

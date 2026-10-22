@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   build-rust:
+    if: github.event_name != 'release' || !startsWith(github.event.release.tag_name, 'toolkit-v')
     name: Build Rust binaries
     runs-on: ${{ matrix.os }}
     strategy:
@@ -69,6 +70,7 @@ jobs:
           path: packages/fmtools/src/fmtools/bin/${{ matrix.artifact_name }}
 
   publish:
+    if: github.event_name != 'release' || !startsWith(github.event.release.tag_name, 'toolkit-v')
     name: Publish to PyPI
     needs: build-rust
     runs-on: ubuntu-latest

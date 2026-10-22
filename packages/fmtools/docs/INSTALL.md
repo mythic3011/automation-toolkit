@@ -1,5 +1,7 @@
 # Install fmtools
 
+To install the standalone Rust tools through Homebrew or Scoop, follow the [package manager guide](../../../docs/PACKAGE_MANAGERS.md). The instructions below install the separate Python `fmtools` CLI.
+
 fmtools supports Python 3.8 and newer. Install it from the repository root in a virtual environment.
 
 ```sh

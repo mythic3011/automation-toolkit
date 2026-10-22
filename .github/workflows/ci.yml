@@ -13,6 +13,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  homebrew-install:
+    name: Install and test Homebrew formula
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    steps:
+      - name: Install from public tap
+        run: |
+          brew tap mythic3011/automation-toolkit https://github.com/mythic3011/automation-toolkit.git
+          brew install mythic3011/automation-toolkit/automation-toolkit
+      - name: Test installed native commands
+        run: brew test mythic3011/automation-toolkit/automation-toolkit
+
+  native-release-packaging:
+    name: Native release packaging tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Test native release packaging
+        run: python -m unittest discover -s tools/tests -v
+
   fmtools-tests:
     name: fmtools tests (Python ${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -89,30 +112,6 @@ jobs:
         run: cargo test --workspace --locked
       - name: Check Rust lints
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
-
-  media-catcher:
-    name: Media Catcher tests and builds
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/media-catcher
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: packages/media-catcher/package-lock.json
-      - name: Install dependencies
-        run: npm ci
-      - name: Run build smoke tests
-        run: npm test
-      - name: Lint source and build scripts
-        run: npm run lint:all
-      - name: Build production userscript
-        run: npm run build
-      - name: Build development userscript
-        run: npm run build:dev
 
   shell-script-syntax:
     name: Tracked shell script syntax

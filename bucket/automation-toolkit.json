@@ -1,0 +1,35 @@
+{
+    "version": "1.0.0",
+    "description": "File organization, deduplication, renaming, and media conversion tools",
+    "homepage": "https://github.com/mythic3011/automation-toolkit",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/mythic3011/automation-toolkit/releases/download/toolkit-v1.0.0/automation-toolkit-1.0.0-x86_64-pc-windows-msvc.zip",
+            "hash": "c6eee707d796e6ee072f9615dfb10a26b306e3c7f525d9ab172cd8c254fe376f"
+        }
+    },
+    "bin": [
+        "dupeforge-rs.exe",
+        "rename_files.exe",
+        "organize_files.exe",
+        "convert_media.exe"
+    ],
+    "suggest": {
+        "FFmpeg for media conversion": "main/ffmpeg"
+    },
+    "checkver": {
+        "url": "https://github.com/mythic3011/automation-toolkit/releases",
+        "regex": "/releases/tag/toolkit-v([\\d.]+)"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/mythic3011/automation-toolkit/releases/download/toolkit-v$version/automation-toolkit-$version-x86_64-pc-windows-msvc.zip"
+            }
+        },
+        "hash": {
+            "url": "$baseurl/SHA256SUMS"
+        }
+    }
+}

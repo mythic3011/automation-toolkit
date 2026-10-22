@@ -4,6 +4,8 @@ A Python CLI for common file operations, with optional Rust executables for dedu
 
 ## Install
 
+For the standalone Rust commands, use [Homebrew or Scoop](../../docs/PACKAGE_MANAGERS.md). These install `dupeforge-rs`, `rename_files`, `organize_files`, and `convert_media`. Install the Python `fmtools` CLI separately using the instructions below.
+
 Requires Python 3.8 or newer. From the repository root, with a virtual environment activated:
 
 ```sh
@@ -59,7 +61,7 @@ Packaged executables live under `src/fmtools/bin/<platform>/` in a source checko
 
 After a Rust executable starts, fmtools propagates its exit status and does not retry the operation in Python. Organizer `--exclude` (repeatable) and `--report` require Rust; requests fail clearly when Rust is unavailable or `--force-python` is set. Rust conversions also reject output collisions and existing files, publish each result without replacement, and return a nonzero status if any file fails. See the [Rust guide](docs/USE_RUST_GUIDE.md) for details.
 
-See the [Rust workspace](rust/) and the root release workflow for build targets. A locally built wheel without these executables uses Python implementations.
+See the [Rust workspace](rust/) and the [Python release workflow](../../.github/workflows/publish.yml) for bundled build targets. A locally built wheel without these executables uses Python implementations. Homebrew and Scoop install standalone executables; they do not add bundled binaries to the Python package.
 
 ## Tests and distribution
 

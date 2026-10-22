@@ -1,5 +1,7 @@
 # Automation Toolkit Rename and History Reset Implementation Plan
 
+> Historical plan: the rename and history reset are complete. Media Catcher was removed afterward; its references below describe the earlier snapshot, not the current packages.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Rename the repository to `mythic3011/automation-toolkit` and replace its Git history with one initial commit containing the current refined files.
