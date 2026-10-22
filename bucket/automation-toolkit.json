@@ -1,12 +1,12 @@
 {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "File organization, deduplication, renaming, and media conversion tools",
     "homepage": "https://github.com/mythic3011/automation-toolkit",
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/mythic3011/automation-toolkit/releases/download/toolkit-v1.0.0/automation-toolkit-1.0.0-x86_64-pc-windows-msvc.zip",
-            "hash": "c6eee707d796e6ee072f9615dfb10a26b306e3c7f525d9ab172cd8c254fe376f"
+            "url": "https://github.com/mythic3011/automation-toolkit/releases/download/toolkit-v1.0.1/automation-toolkit-1.0.1-x86_64-pc-windows-msvc.zip",
+            "hash": "6f494b343a7f24fead9b21291e8cfb49faf2ea00afb7dc27489c13aed28a7c4e"
         }
     },
     "bin": [

@@ -2,9 +2,9 @@
 class AutomationToolkit < Formula
   desc "File organization, deduplication, renaming, and media conversion tools"
   homepage "https://github.com/mythic3011/automation-toolkit"
-  url "https://github.com/mythic3011/automation-toolkit/releases/download/toolkit-v1.0.0/automation-toolkit-1.0.0-source.tar.gz"
-  version "1.0.0"
-  sha256 "7c047f6e4477f40cd868c6b9e0ad0971c18d593785a788500fa4227ad41e6f9d"
+  url "https://github.com/mythic3011/automation-toolkit/releases/download/toolkit-v1.0.1/automation-toolkit-1.0.1-source.tar.gz"
+  version "1.0.1"
+  sha256 "b210f04733eb1e29f7c5efadfcf4336a7f696f190478c9b20e9b53c7a6536dc8"
   license "MIT"
 
   depends_on "rust" => :build
