@@ -515,21 +515,30 @@ fn main() -> Result<()> {
 #[cfg(test)]
 mod safety_tests {
     use super::*;
+    use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::{SystemTime, UNIX_EPOCH};
+
+    static FIXTURE_ID: AtomicU64 = AtomicU64::new(0);
 
     struct Fixture(PathBuf);
     impl Fixture {
         fn new() -> Self {
-            let p = std::env::temp_dir().join(format!(
-                "dupeforge-test-{}-{}",
-                std::process::id(),
-                SystemTime::now()
+            loop {
+                let timestamp = SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .unwrap()
-                    .as_nanos()
-            ));
-            fs::create_dir_all(&p).unwrap();
-            Self(p)
+                    .as_nanos();
+                let id = FIXTURE_ID.fetch_add(1, Ordering::Relaxed);
+                let p = std::env::temp_dir().join(format!(
+                    "dupeforge-test-{}-{timestamp}-{id}",
+                    std::process::id()
+                ));
+                match fs::create_dir(&p) {
+                    Ok(()) => return Self(p),
+                    Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                    Err(error) => panic!("Failed to create test fixture {}: {error}", p.display()),
+                }
+            }
         }
         fn put(&self, name: &str, bytes: &[u8]) -> FileInfo {
             let p = self.0.join(name);

@@ -65,34 +65,62 @@ struct ScannedFile {
 }
 
 fn source_snapshot(path: &Path) -> Result<SourceSnapshot> {
-    let metadata = fs::symlink_metadata(path)
+    let (metadata, identity) = snapshot_metadata(path)
         .with_context(|| format!("could not inspect source {}", path.display()))?;
     if !metadata.file_type().is_file() {
         bail!("source is no longer a regular file: {}", path.display());
     }
-    Ok(source_snapshot_from_metadata(&metadata))
-}
-
-fn source_snapshot_from_metadata(metadata: &fs::Metadata) -> SourceSnapshot {
-    SourceSnapshot {
+    Ok(SourceSnapshot {
         len: metadata.len(),
         modified: metadata.modified().ok(),
         created: metadata.created().ok(),
-        identity: file_identity(metadata),
+        identity,
+    })
+}
+
+#[cfg(not(windows))]
+fn snapshot_metadata(path: &Path) -> Result<(fs::Metadata, Option<(u64, u64)>)> {
+    let metadata = fs::symlink_metadata(path)?;
+    let identity = file_identity(&metadata);
+    Ok((metadata, identity))
+}
+
+#[cfg(windows)]
+fn snapshot_metadata(path: &Path) -> Result<(fs::Metadata, Option<(u64, u64)>)> {
+    use std::os::windows::fs::OpenOptionsExt;
+    use std::os::windows::io::AsRawHandle;
+    use windows_sys::Win32::Storage::FileSystem::{
+        GetFileInformationByHandle, BY_HANDLE_FILE_INFORMATION, FILE_FLAG_OPEN_REPARSE_POINT,
+        FILE_READ_ATTRIBUTES,
+    };
+
+    // Query attributes and identity through the same handle, without reading
+    // file contents or following a replacement symlink.
+    let file = fs::OpenOptions::new()
+        .read(true)
+        .access_mode(FILE_READ_ATTRIBUTES)
+        .custom_flags(FILE_FLAG_OPEN_REPARSE_POINT)
+        .open(path)?;
+    let metadata = file.metadata()?;
+    let mut information = std::mem::MaybeUninit::<BY_HANDLE_FILE_INFORMATION>::uninit();
+    // SAFETY: file owns a live handle and information points to writable storage.
+    if unsafe { GetFileInformationByHandle(file.as_raw_handle(), information.as_mut_ptr()) } == 0 {
+        return Err(std::io::Error::last_os_error()).context("could not read source file identity");
     }
+    // SAFETY: a successful call initializes the complete information structure.
+    let information = unsafe { information.assume_init() };
+    let index =
+        (u64::from(information.nFileIndexHigh) << 32) | u64::from(information.nFileIndexLow);
+    Ok((
+        metadata,
+        Some((u64::from(information.dwVolumeSerialNumber), index)),
+    ))
 }
 
 #[cfg(unix)]
 fn file_identity(metadata: &fs::Metadata) -> Option<(u64, u64)> {
     use std::os::unix::fs::MetadataExt;
     Some((metadata.dev(), metadata.ino()))
-}
-
-#[cfg(windows)]
-fn file_identity(_metadata: &fs::Metadata) -> Option<(u64, u64)> {
-    // Stable Windows file-index access is not available through stable std APIs.
-    // Creation time remains part of the snapshot as a replacement signal.
-    None
 }
 
 #[cfg(not(any(unix, windows)))]
@@ -664,6 +692,39 @@ mod tests {
         });
         assert!(result.is_err());
         assert_eq!(fs::read(&original).unwrap(), b"swapped");
+        assert!(!f.0.join("1.gif").exists());
+        assert_eq!(fs::read_dir(&stage_dir).unwrap().count(), 0);
+    }
+
+    #[cfg(any(unix, windows))]
+    #[test]
+    fn rolls_back_replacement_with_matching_size_and_timestamps() {
+        let f = Fixture::new();
+        let original = f.0.join("a.gif");
+        fs::write(&original, b"fixture").unwrap();
+        let mut snapshot = source_snapshot(&original).unwrap();
+        let retained = f.0.join("retained-original");
+        fs::rename(&original, &retained).unwrap();
+        fs::write(&original, b"swapped").unwrap();
+        let replacement = source_snapshot(&original).unwrap();
+        assert_eq!(snapshot.len, replacement.len);
+        // Clock precision and restored timestamps can make distinct files share
+        // these attributes. The transaction must still reject the replacement.
+        snapshot.modified = replacement.modified;
+        snapshot.created = replacement.created;
+        let stage_dir = f.0.join(".test-stage");
+        fs::create_dir(&stage_dir).unwrap();
+        let mut records = vec![MoveRecord {
+            original: original.clone(),
+            staged: stage_dir.join("a"),
+            final_path: f.0.join("1.gif"),
+            snapshot,
+            staged_in_temp: false,
+            finalized: false,
+        }];
+        assert!(run_transaction(&mut records, fmtools_fs::move_noclobber).is_err());
+        assert_eq!(fs::read(&original).unwrap(), b"swapped");
+        assert_eq!(fs::read(retained).unwrap(), b"fixture");
         assert!(!f.0.join("1.gif").exists());
         assert_eq!(fs::read_dir(&stage_dir).unwrap().count(), 0);
     }

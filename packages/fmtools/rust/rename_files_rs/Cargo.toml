@@ -17,3 +17,6 @@ log = { workspace = true }
 env_logger = { workspace = true }
 indicatif = { workspace = true }
 fmtools-fs.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage_FileSystem"] }

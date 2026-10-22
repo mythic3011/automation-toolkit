@@ -77,8 +77,8 @@ Native versions track `[workspace.package].version` in `packages/fmtools/rust/Ca
 After updating the workspace version and running CI, push a native release tag:
 
 ```sh
-git tag toolkit-v1.0.1
-git push main toolkit-v1.0.1
+git tag toolkit-v1.0.2
+git push main toolkit-v1.0.2
 ```
 
 Here `main` is this checkout's Git remote name. Replace it with your own remote name when needed. Alternatively, run the **Native toolkit release** workflow manually with the matching workspace version. Use only one trigger per release.
@@ -94,9 +94,9 @@ For local packaging, use Python 3.11 or newer from the repository root:
 ```powershell
 $env:RUSTFLAGS = '-C target-feature=+crt-static'
 cargo build --manifest-path packages/fmtools/rust/Cargo.toml --locked --release --workspace --target x86_64-pc-windows-msvc
-python tools/native_release.py bundle --version 1.0.0 --target x86_64-pc-windows-msvc --binary-dir packages/fmtools/rust/target/x86_64-pc-windows-msvc/release --output dist/native
-python tools/native_release.py source --version 1.0.0 --output dist/native
-python tools/native_release.py manifests --version 1.0.0 --assets dist/native --output-root .
+python tools/native_release.py bundle --version 1.0.1 --target x86_64-pc-windows-msvc --binary-dir packages/fmtools/rust/target/x86_64-pc-windows-msvc/release --output dist/native-1.0.1
+python tools/native_release.py source --version 1.0.1 --output dist/native-1.0.1
+python tools/native_release.py manifests --version 1.0.1 --assets dist/native-1.0.1 --output-root .
 python -m unittest discover -s tools/tests -v
 ```
 
