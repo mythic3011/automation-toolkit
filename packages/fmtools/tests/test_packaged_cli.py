@@ -20,7 +20,7 @@ def installed_wheel(tmp_path_factory):
     install_dir = workspace / "installed"
     install_dir.mkdir()
 
-    subprocess.run(
+    build_result = subprocess.run(
         [
             sys.executable,
             "-m",
@@ -31,11 +31,11 @@ def installed_wheel(tmp_path_factory):
             "--outdir",
             str(wheelhouse),
         ],
-        check=True,
         cwd=workspace,
         capture_output=True,
         text=True,
     )
+    assert build_result.returncode == 0, build_result.stdout + build_result.stderr
     wheel_path = next(wheelhouse.glob("fmtools-*.whl"))
     with zipfile.ZipFile(wheel_path) as wheel:
         wheel.extractall(install_dir)
